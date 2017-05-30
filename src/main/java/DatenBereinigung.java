@@ -1,0 +1,164 @@
+/**
+ * Created by maria on 30/05/17.
+ */
+
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Created by maria on 29/05/17.
+ */
+public class DatenBereinigung {
+
+
+    public static String candidate;
+    public static String text;
+    //public static boolean isRetweet;
+    //public static String original;
+    public static String time;
+    public static boolean quote;
+    public static String retweet;
+    public static String favorite;
+    public static List<String> hashtags = new ArrayList<String>();
+
+
+    public DatenBereinigung(String filename) {}
+
+
+    public static void checkCandidate(String str) {
+
+        if (str.length() == 14) {
+            candidate = "HillaryClinton";
+        }
+
+        else if (str.length() == 15) {
+            candidate = "DonaldTrump";
+        }
+        else {
+            candidate = " ";
+        }
+    }
+
+    public static void checkTweet(String str) {
+        text = str;
+    }
+
+    public static void checkTime(String str) {
+        if (str.length() == 19) {
+            time = str;
+        } else {
+            time = " ";
+        }
+    }
+
+    public static void checkQuote(String str) {
+        if (str == "True") {
+            quote = true;
+        } else if (str == "False") {
+            quote = false;
+        } else {
+            quote = false;
+        }
+    }
+
+    public static void checkRetweetCount(String count) {
+        retweet = count;
+    }
+
+    public static void checkFavoriteCount(String count) {
+        favorite = count;
+    }
+
+
+    public static void getHashtag(String str) {
+        String tag_pattern = "(#\\w+)";
+
+        Pattern p = Pattern.compile(tag_pattern);
+        Matcher m = p.matcher(str);
+        List<String> htags = new ArrayList<String>();
+
+        while (m.find()) {
+            String hashtag = m.group(1);
+            System.out.println(hashtag);
+            htags.add(hashtag);
+        }
+
+        hashtags = htags;
+    }
+
+    public static void writeLine(PrintStream out) {
+        if (candidate == " ") {
+            out.print("");
+        }
+        else {
+            out.print(candidate);
+            out.print(";");
+            out.print(text);
+            out.print(";");
+            if (hashtags.size() != 0) {
+                for (int i = 0; i < hashtags.size() - 1; i++) {
+                    String hashtag = hashtags.get(i);
+                    out.print(hashtag);
+                    out.print(",");
+                }
+                out.print(hashtags.get(hashtags.size() - 1));
+                out.print(";");
+            }
+            out.print(time);
+            out.print(";");
+            out.print(quote);
+            out.print(";");
+            out.print(retweet);
+            out.print(";");
+            out.println(favorite);
+        }
+    }
+
+
+    public static void main(String[] args) throws IOException {
+        System.out.println("********************************************************************************");
+        System.out.println("2. Iteration: Datenbereinigung");
+        System.out.println("********************************************************************************");
+
+        if (args.length != 1) {
+            System.out.println("Only one object in input needed");
+
+        } else {
+
+
+            BufferedReader reader = new BufferedReader(new FileReader(args[0]));
+            PrintStream out = new PrintStream("american-election-tweets-clean.csv");
+            String l;
+
+
+            while ((l = reader.readLine()) != null) {
+                String[] ll = l.split(";");
+
+                if (ll.length == 11) {
+
+                    checkCandidate(ll[0]);
+                    checkTweet(ll[1]);
+                    checkTime(ll[4]);
+                    checkQuote(ll[6]);
+                    checkRetweetCount(ll[7]);
+                    checkFavoriteCount(ll[8]);
+                    getHashtag(ll[1]);
+
+                    writeLine(out);
+
+
+                }
+
+
+            }
+        }
+
+    }
+}
