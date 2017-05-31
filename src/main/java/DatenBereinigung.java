@@ -172,29 +172,29 @@ public class DatenBereinigung {
 
                     writeLine(out);
 
-
                 }
 
-                /*else {
-                    damaged_line += l.replace("/n"," ");
+                else {
+                    damaged_line = damaged_line + l.replace("/n"," ");
                     String[] split = damaged_line.split(";");
 
-                    if (split.length == 11) {
-                        checkCandidate(ll[0]);
-                        checkTweet(ll[1]);
-                        checkTime(ll[4]);
-                        checkOriginal(ll[3]);
-                        checkIsRetweet(ll[2]);
-                        checkRetweetCount(ll[7]);
-                        checkFavoriteCount(ll[8]);
-                        getHashtag(ll[1]);
+                    if (split.length >= 11) {
+                        System.out.println(damaged_line);
+                        checkCandidate(split[0]);
+                        checkTweet(split[1]);
+                        checkTime(split[4]);
+                        checkOriginal(split[3]);
+                        checkIsRetweet(split[2]);
+                        checkRetweetCount(split[7]);
+                        checkFavoriteCount(split[8]);
+                        getHashtag(split[1]);
 
                         writeLine(out);
 
                         damaged_line = "";
 
                     }
-                }*/
+                }
 
                 /*else if (ll.length != 11){
                     if (ll[1].contains("\n")) {
