@@ -1,8 +1,3 @@
-/**
- * Created by maria on 30/05/17.
- */
-
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -195,19 +190,6 @@ public class DatenBereinigung {
 
                     }
                 }
-
-                /*else if (ll.length != 11){
-                    if (ll[1].contains("\n")) {
-                        String fix = ll[1].replace("\n"," ");
-                        if (damaged_line == "") {
-                            damaged_line = damaged_line + l;
-                        }
-                        else {
-                            damaged_line = damaged_line + ";" + l;
-                        }
-
-                    }
-                }*/
 
 
 
