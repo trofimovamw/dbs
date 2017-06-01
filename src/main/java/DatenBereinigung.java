@@ -224,7 +224,7 @@ public class DatenBereinigung {
                                 merge += sp[i];
                                 count++;
                             }
-                            System.out.println(merge);
+                            //System.out.println(merge);
                             merge = merge.replace(";"," ");
                             damaged_line = sp[0] + ";" + merge;
                             for (int j = count+1; j < sp.length; j++) {
