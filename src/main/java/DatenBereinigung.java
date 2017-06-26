@@ -1,12 +1,12 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+    import java.io.BufferedReader;
+    import java.io.FileReader;
+    import java.io.IOException;
+    import java.io.PrintStream;
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.UUID;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
 
 /**
  * Created by maria on 29/05/17.
@@ -138,7 +138,7 @@ public class DatenBereinigung {
                 for (int i = 0; i < hashtags.size() - 1; i++) {
                     String hashtag = hashtags.get(i);
                     out.print(hashtag);
-                    out.print("+");
+                    out.print(",");
                 }
                 out.print(hashtags.get(hashtags.size() - 1));
                 out.print(";");
