@@ -24,7 +24,7 @@ public class Clustering {
 
     /*
      *
-     * 
+     *
      * Set hashtags from database (no repetitions)
      */
 
@@ -348,6 +348,27 @@ public class Clustering {
         return result;
     }
 
+
+
+    public static void writeJS() throws Exception{
+        //{id: 0, label: "0", group: 0}
+        PrintStream out1 = new PrintStream("aet-js.csv");
+        PrintStream out2 = new PrintStream("aet-js-edges.csv");
+        for (int i =0; i < clusters.size(); i++) {
+            for (int j = 0; j < clusters.get(i).size(); j++ ) {
+                {writeJSNode(i, j,out1, out2);}
+            }
+        }
+        //{from: 2, to: 0}
+
+    }
+
+    public static void writeJSNode(Integer i, Integer j, PrintStream out1, PrintStream out2) {
+        out1.println("{id: " + hashtags.indexOf(clusters.get(i).get(j)) + ", " + "label: " + '"'+clusters.get(i).get(j)+'"'
+                + ", " + "group: " + i + "}" + ",");
+        out2.println("{from: " + hashtags.indexOf(centers.get(i)) + ", " + "to: " + hashtags.indexOf(clusters.get(i).get(j)) + "}" + ",");
+    }
+
      /*
       *
       *
@@ -428,6 +449,7 @@ public class Clustering {
         getCluster();
         setDistances();
         writeCSV();
+        writeJS();
 
     }
 }
