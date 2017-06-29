@@ -292,33 +292,6 @@ public class Clustering {
 
     }
 
-     /*
-      *
-      *
-      * Write file for visualization
-      */
-
-    public static void writeCSV() throws Exception{
-        PrintStream out = new PrintStream("aet-kmeans.csv");
-        for (int i = 0; i < clusters.size(); i++) {writeLine(i,out);}
-    }
-
-    public static void writeLine(Integer i, PrintStream out) {
-        out.print(centers.get(i));
-        out.print(";");
-        for (int j = 0; j < clusters.get(i).size()-1; j++) {
-            out.print(clusters.get(i).get(j));
-            out.print(",");
-        }
-        out.print(clusters.get(i).get(clusters.get(i).size()-1));
-        out.print(";");
-        for(int j = 0; j < distances.get(i).size()-1; j++) {
-            out.print(distances.get(i).get(j));
-            out.print(",");
-        }
-        out.println(distances.get(i).get(distances.get(i).size()-1));
-
-    }
 
      /*
       *
@@ -352,21 +325,104 @@ public class Clustering {
 
     public static void writeJS() throws Exception{
         //{id: 0, label: "0", group: 0}
-        PrintStream out1 = new PrintStream("aet-js.csv");
-        PrintStream out2 = new PrintStream("aet-js-edges.csv");
-        for (int i =0; i < clusters.size(); i++) {
-            for (int j = 0; j < clusters.get(i).size(); j++ ) {
-                {writeJSNode(i, j,out1, out2);}
+        PrintStream out = new PrintStream("aet-js.html");
+        out.print("<!doctype html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "    <title>Hashtags</title>\n" +
+                "\n" +
+                "    <style>\n" +
+                "        body {\n" +
+                "            color: #d3d3d3;\n" +
+                "            font: 12pt arial;\n" +
+                "            background-color: #222222;\n" +
+                "        }\n" +
+                "\n" +
+                "        #mynetwork {\n" +
+                "            width: 800px;\n" +
+                "            height: 800px;\n" +
+                "            border: 1px solid #444444;\n" +
+                "            background-color: #222222;\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "\n" +
+                "    <script src=\"./vis-4.20.0/dist/vis.js\"></script>\n" +
+                "    <link href=\"./vis-4.20.0/dist/vis.css\" rel=\"stylesheet\" type=\"text/css\" />\n" +
+                "\n" +
+                "\n" +
+                "    \n" +
+                "</head>\n" +
+                "\n" +
+                "<body>\n" +
+                "\n" +
+                "<div id=\"mynetwork\"></div>\n" +
+                "<script type=\"text/javascript\">\n" +
+                "    var color = 'gray';\n" +
+                "    var len = undefined;\n" +
+                "\n" +
+                "    var nodes = [");
+        for (int i = 0; i < clusters.size(); i++) {
+            for (int j = 0; j < clusters.get(i).size()-1; j++ ) {
+                writeJSNode(i, j,out);
+                out.println(",");
             }
         }
+        int ii = clusters.size()-1;
+        int jj = clusters.get(ii).size()-1;
+        writeJSNode(ii,jj,out);
+        out.println();
+
+        out.print("];\n" +
+                "    var edges = [");
+        for (int i =0; i < clusters.size(); i++) {
+            for (int j = 0; j < clusters.get(i).size(); j++ ) {
+                writeJSEdge(i, j,out);
+                out.println(",");
+            }
+        }
+
+        writeJSEdge(ii,jj,out);
+        out.println();
+
+        out.print("]\n" +
+                "\n" +
+                "    // create a network\n" +
+                "    var container = document.getElementById('mynetwork');\n" +
+                "    var data = {\n" +
+                "        nodes: nodes,\n" +
+                "        edges: edges\n" +
+                "    };\n" +
+                "    var options = {\n" +
+                "        nodes: {\n" +
+                "            shape: 'dot',\n" +
+                "            size: 30,\n" +
+                "            font: {\n" +
+                "                size: 32,\n" +
+                "                color: '#ffffff'\n" +
+                "            },\n" +
+                "            borderWidth: 2\n" +
+                "        },\n" +
+                "        edges: {\n" +
+                "            width: 2\n" +
+                "        }\n" +
+                "    };\n" +
+                "    network = new vis.Network(container, data, options);\n" +
+                "</script>\n" +
+                "</body>\n" +
+                "</html>");
         //{from: 2, to: 0}
 
     }
 
-    public static void writeJSNode(Integer i, Integer j, PrintStream out1, PrintStream out2) {
-        out1.println("{id: " + hashtags.indexOf(clusters.get(i).get(j)) + ", " + "label: " + '"'+clusters.get(i).get(j)+'"'
-                + ", " + "group: " + i + "}" + ",");
-        out2.println("{from: " + hashtags.indexOf(centers.get(i)) + ", " + "to: " + hashtags.indexOf(clusters.get(i).get(j)) + "}" + ",");
+    public static void writeJSNode(Integer i, Integer j, PrintStream out) {
+        out.print("{id: " + hashtags.indexOf(clusters.get(i).get(j)) + ", "
+                + "label: " + '"'+clusters.get(i).get(j)+'"' + ", " + "group: " + i + "}");
+    }
+
+    public static void writeJSEdge(Integer i, Integer j, PrintStream out) {
+        out.print("{from: " + hashtags.indexOf(centers.get(i)) + ", " + "to: " +
+                hashtags.indexOf(clusters.get(i).get(j)) + "}");
+
     }
 
      /*
@@ -448,7 +504,6 @@ public class Clustering {
         System.out.println(count);
         getCluster();
         setDistances();
-        writeCSV();
         writeJS();
 
     }
