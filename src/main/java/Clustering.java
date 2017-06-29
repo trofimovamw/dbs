@@ -14,10 +14,11 @@ public class Clustering {
     public static ArrayList<String> oldCenters;
     public static ArrayList<String> hashtags;
     public static Integer K;
+    public static Integer convergence = 2;
     public static ArrayList<ArrayList<String>> clusters;
     public static ArrayList<ArrayList<Integer>> distances;
 
-    // Continue until old cluster and new cluster are the same...
+    // Continue until old cluster and new cluster are the same (with convergence order)...
 
 
     public Clustering(String filename){}
@@ -120,14 +121,11 @@ public class Clustering {
                 if (a.length() > b.length() == true) {dist = dist + Metric(a,b);}
                 else {dist = dist + Metric(b,a);}
             }
-            //System.out.print(dist + " ;");
 
             distances.add(i,dist);
         }
-        //System.out.println(cluster.size() + " ;" + distances.size());
 
         Integer distance = Collections.min(distances);
-        //System.out.println(distance);
         int index = distances.indexOf(distance);
         String newCenter = cluster.get(index);
 
@@ -146,7 +144,7 @@ public class Clustering {
       *
       *
       *
-      *Set clusters around initialized cluster centers
+      * Set clusters around initialized cluster centers
       *
       */
 
@@ -296,26 +294,24 @@ public class Clustering {
      /*
       *
       *
-      *Check if centers of clusters changed from last iteration
+      * Check if centers of clusters changed from last iteration considering convergence order
       */
 
-    public static boolean listsEqual(ArrayList<String> a, ArrayList<String> b) {
+    public static boolean Convergence(ArrayList<String> a, ArrayList<String> b) {
         Boolean result = true;
         for (int i = 0; i < a.size(); i++) {
             String A = a.get(i);
-            //System.out.println(A);
             String B = b.get(i);
-            //System.out.println(B);
             Integer n = 0;
             if (A.length() >= B.length() == true) {n = Metric(A,B);}
             else {n = Metric(B,A);}
 
 
-            if(n==0) {
-                result = result && true;
+            if(n > convergence) {
+                result = result && false;
             }
             else {
-                result = result && false;
+                result = result && true;
             }
         }
         return result;
@@ -410,7 +406,6 @@ public class Clustering {
                 "</script>\n" +
                 "</body>\n" +
                 "</html>");
-        //{from: 2, to: 0}
 
     }
 
@@ -432,29 +427,11 @@ public class Clustering {
       */
 
     public static void main(String[] args) throws Exception {
-        String a = "MaGreatAgafffffin";
-        String b = "makeamericagre";
-        //System.out.println(Metric(a,b));
-
-        ArrayList<String> test = new ArrayList<String>();
-        test.add("abc");
-        test.add("bcbc");
-        test.add("abec");
-        test.add("bcbeec");
-        test.add("abcc");
-        test.add("bcsdfc");
-        test.add("abcCCC");
-        test.add("bcbcdsd");
-        test.add("abedsc");
-        test.add("bcbeecds");
-        test.add("abccss");
-        test.add("bccsss");
 
         setHashtags("american-election-tweets-clean.csv");
 
         setInitialK(50);
         setInitialCenters(hashtags);
-        getCenters();
 
         setOldCenter();
 
@@ -462,47 +439,33 @@ public class Clustering {
         for (int i = 0; i < hashtags.size(); i++) {
             assignToCluster(hashtags.get(i));
         }
-        //getCluster();
-
-        System.out.println();
-
 
         for (int i = 0; i < clusters.size(); i++) {
             int number = i;
-            //System.out.println(number);
             setCenter(clusters.get(number));
         }
-        getCenters();
-        System.out.println();
 
         for (int i = 0; i < hashtags.size(); i++) {
             assignToCluster(hashtags.get(i));
         }
-        //getCluster();
         int count = 0;
 
-        while(listsEqual(oldCenters,centers) == false || count != 10000){
+        while(Convergence(oldCenters,centers) == false){
             setOldCenter();
             count += 1;
             for (int i = 0; i < clusters.size(); i++) {
                 int number = i;
-                //System.out.println(number);
                 setCenter(clusters.get(number));
             }
-            //getCenters();
-            //System.out.println();
 
 
             for (int i = 0; i < hashtags.size(); i++) {
                 assignToCluster(hashtags.get(i));
             }
-            //getCluster();
-            //System.out.println();
+
 
         }
 
-        System.out.println(count);
-        getCluster();
         setDistances();
         writeJS();
 
