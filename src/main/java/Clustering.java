@@ -29,11 +29,11 @@ public class Clustering {
     public static ArrayList<String> oldCenters;
     public static ArrayList<String> hashtags;
     public static Integer K;
-    public static Integer convergence = 0;
+    public static Integer convergence = 3;
     public static ArrayList<ArrayList<String>> clusters;
     public static ArrayList<ArrayList<Integer>> distances;
 
-    // Continue until old cluster and new cluster are the same (with convergence order)...
+    // Continue until old cluster and new cluster are the same...
 
 
     public Clustering(String filename){}
@@ -43,7 +43,6 @@ public class Clustering {
      *
      * Set hashtags from database
      */
-
     public static void getHashtagsSQL() throws Exception{
 
         Class.forName("org.postgresql.Driver");
@@ -71,7 +70,6 @@ public class Clustering {
      *
      *
      */
-
     public static void setHashtags(String filename) throws IOException{
 
         BufferedReader reader = new BufferedReader(new FileReader(filename));
@@ -105,7 +103,6 @@ public class Clustering {
       *
       * Number of clusters (set at runtime)
       */
-
     public static void setInitialK(Integer k) {K = k;}
 
 
@@ -151,8 +148,6 @@ public class Clustering {
       *
       * Set centers using this function starting from 2. iteration
       */
-
-
     public static void setCenter(ArrayList<String> cluster) {
 
         ArrayList<Integer> distances = new ArrayList<Integer>();
@@ -190,7 +185,6 @@ public class Clustering {
       * Set clusters around initialized cluster centers
       *
       */
-
     public static void assignToCluster(String hashtag) {
         //calculate distance from object to each cluster center
         //assign object to cluster with shortest distance
@@ -225,7 +219,6 @@ public class Clustering {
       * Save old centers for comparison during iteration
       *
       */
-
     public static void setOldCenter() {
         ArrayList<String> oc = new ArrayList<String>();
         for (int i = 0; i < centers.size(); i++) {
@@ -233,46 +226,6 @@ public class Clustering {
             oc.add(i,center);
         }
         oldCenters = oc;
-    }
-
-
-     /*
-      *
-      *
-      *
-      * Print the clusters
-      *
-      */
-
-
-    public static void getCluster() {
-        for (int i = 0; i < clusters.size(); i++) {
-            ArrayList<String> cl = clusters.get(i);
-
-            System.out.print("{");
-            for (int jj = 0; jj < cl.size(); jj++) {
-                System.out.print(cl.get(jj));
-                System.out.print(",");
-            }
-            System.out.println("}");
-        }
-    }
-
-     /*
-      *
-      *
-      * Print the centers
-      */
-
-    public static void getCenters() {
-
-        for (int i = 0; i < centers.size(); i++) {
-            String cl = centers.get(i);
-
-            System.out.print("{");
-            System.out.print(cl);
-            System.out.println("}");
-        }
     }
 
      /*
@@ -305,36 +258,6 @@ public class Clustering {
      /*
       *
       *
-      * Calculate distances from cluster nodes to the center
-      */
-
-    public static void setDistances() {
-        ArrayList<ArrayList<Integer>> dist = new ArrayList<ArrayList<Integer>>();
-
-        for (int i = 0; i < clusters.size(); i++) {
-            ArrayList<Integer> cluster_distances = new ArrayList<Integer>();
-            ArrayList<String> cl = clusters.get(i);
-
-            for (int j = 0; j < cl.size(); j++) {
-                Integer d = 0;
-                String a = centers.get(i);
-                String b = cl.get(j);
-                if (a.length() > b.length() == true) {d = d + Metric(a,b);}
-                else {d = d + Metric(b,a);}
-                cluster_distances.add(j,d);
-
-            }
-            dist.add(i,cluster_distances);
-
-        }
-        distances = dist;
-
-    }
-
-
-     /*
-      *
-      *
       * Check if centers of clusters changed from last iteration considering convergence order
       */
 
@@ -363,40 +286,6 @@ public class Clustering {
     public static void writeJS() throws Exception{
         //{id: 0, label: "0", group: 0}
         PrintStream out = new PrintStream("AmericanElection.js");
-        /*out.print("<!doctype html>\n" +
-                "<html>\n" +
-                "<head>\n" +
-                "    <title>Hashtags</title>\n" +
-                "\n" +
-                "    <style>\n" +
-                "        body {\n" +
-                "            color: #d3d3d3;\n" +
-                "            font: 12pt arial;\n" +
-                "            background-color: #222222;\n" +
-                "        }\n" +
-                "\n" +
-                "        #mynetwork {\n" +
-                "            width: 800px;\n" +
-                "            height: 800px;\n" +
-                "            border: 1px solid #444444;\n" +
-                "            background-color: #222222;\n" +
-                "        }\n" +
-                "    </style>\n" +
-                "\n" +
-                "    <script src=\"./vis-4.20.0/dist/vis.js\"></script>\n" +
-                "    <link href=\"./vis-4.20.0/dist/vis.css\" rel=\"stylesheet\" type=\"text/css\" />\n" +
-                "\n" +
-                "\n" +
-                "    \n" +
-                "</head>\n" +
-                "\n" +
-                "<body>\n" +
-                "\n" +
-                "<div id=\"mynetwork\"></div>\n" +
-                "<script type=\"text/javascript\">\n" +
-                "    var color = 'gray';\n" +
-                "    var len = undefined;\n" +
-                "\n" +*/
         out.print("    var nodes = [");
         for (int i = 0; i < clusters.size(); i++) {
             for (int j = 0; j < clusters.get(i).size()-1; j++ ) {
@@ -439,33 +328,7 @@ public class Clustering {
         writeJSEdge(ii,jj,out);
         out.println();
 
-        out.print("];");/*\n" +
-                "\n" +
-                "    // create a network\n" +
-                "    var container = document.getElementById('mynetwork');\n" +
-                "    var data = {\n" +
-                "        nodes: nodes,\n" +
-                "        edges: edges\n" +
-                "    };\n" +
-                "    var options = {\n" +
-                "        nodes: {\n" +
-                "            shape: 'dot',\n" +
-                "            size: 30,\n" +
-                "            font: {\n" +
-                "                size: 32,\n" +
-                "                color: '#ffffff'\n" +
-                "            },\n" +
-                "            borderWidth: 2\n" +
-                "        },\n" +
-                "        edges: {\n" +
-                "            width: 2\n" +
-                "        }\n" +
-                "    };\n" +
-                "    network = new vis.Network(container, data, options);\n" +
-                "</script>\n" +
-                "</body>\n" +
-                "</html>");*/
-
+        out.print("];");
     }
 
     public static void writeJSNode(Integer i, Integer j, PrintStream out) {
@@ -487,37 +350,6 @@ public class Clustering {
                 distance(centers.get(i),centers.get(j)) + ", "  + "font: {align: 'middle'}}");
     }
 
-
-
-    public static void writeCSV() throws Exception{
-        PrintStream out = new PrintStream("graph.csv");
-        out.println("Source;Target;Weight");
-        for (int i =0; i < clusters.size(); i++) {
-            for (int j = 0; j < clusters.get(i).size(); j++ ) {
-                writeEdge(i, j,out);
-                if (i!=j) {                writeCenters(i,j,out);}
-            }
-        }
-    }
-
-    public static void writeEdge(Integer i, Integer j, PrintStream out) {
-        out.println(centers.get(i) + ";" +
-                clusters.get(i).get(j) + ";" + distance(centers.get(i),clusters.get(i).get(j)));
-
-    }
-
-    public static void writeCenters(Integer i, Integer j, PrintStream out) {
-        out.println(centers.get(i) + ";" + centers.get(j) + ";" + distance(centers.get(i),centers.get(j)));
-    }
-
-
-    public static void writeNodes() throws Exception{
-        PrintStream out = new PrintStream("nodes.csv");
-        out.println("Id");
-        for (int i = 0; i < hashtags.size(); i++) {
-            out.println(hashtags.get(i));
-        }
-    }
 
     public static Integer distance(String A, String B) {
         Integer n = 0;
@@ -570,14 +402,9 @@ public class Clustering {
                 assignToCluster(hashtags.get(i));
             }
 
-
         }
 
-        setDistances();
-        System.out.println(count);
         writeJS();
-        //writeCSV();
-        //writeNodes();
 
     }
 }
