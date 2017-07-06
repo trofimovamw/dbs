@@ -3,6 +3,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 
@@ -14,7 +29,7 @@ public class Clustering {
     public static ArrayList<String> oldCenters;
     public static ArrayList<String> hashtags;
     public static Integer K;
-    public static Integer convergence = 2;
+    public static Integer convergence = 0;
     public static ArrayList<ArrayList<String>> clusters;
     public static ArrayList<ArrayList<Integer>> distances;
 
@@ -26,7 +41,35 @@ public class Clustering {
     /*
      *
      *
-     * Set hashtags from database (no repetitions)
+     * Set hashtags from database
+     */
+
+    public static void getHashtagsSQL() throws Exception{
+
+        Class.forName("org.postgresql.Driver");
+        Connection c;
+        //ResultSet result;
+        List<String> tags = new ArrayList<String>();
+
+
+        try {
+            String query = "SELECT * FROM hashtag";
+            c = DriverManager
+                    .getConnection("database");
+            Statement stmt = c.createStatement();
+            ResultSet result  = stmt.executeQuery(String.format(query));
+
+            while (result.next()) {
+                tags.add(result.getString(1));
+            }
+        }
+        catch (SQLException e){}
+    }
+
+    /*
+     *
+     *
+     *
      */
 
     public static void setHashtags(String filename) throws IOException{
@@ -86,7 +129,7 @@ public class Clustering {
 
             String a = hashtags.get(arr[i]);
 
-            System.out.println(hashtags.get(arr[i]));
+            //System.out.println(hashtags.get(arr[i]));
 
             c.add(a);
         }
@@ -242,22 +285,20 @@ public class Clustering {
     public static int Metric(String tag1, String tag2) {
 
         tag1 = tag1.toLowerCase();
-        tag2 =tag2.toLowerCase();
-        // i == 0
-        int [] costs = new int [tag1.length() + 1];
-        for (int j = 0; j < costs.length; j++)
-            costs[j] = j;
+        tag2 = tag2.toLowerCase();
+        int [] cost = new int [tag1.length() + 1];
+        for (int j = 0; j < cost.length; j++)
+            cost[j] = j;
         for (int i = 1; i <= tag1.length(); i++) {
-            // j == 0; nw = lev(i - 1, j)
-            costs[0] = i;
+            cost[0] = i;
             int nw = i - 1;
             for (int j = 1; j <= tag2.length(); j++) {
-                int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]), tag1.charAt(i - 1) == tag2.charAt(j - 1) ? nw : nw + 1);
-                nw = costs[j];
-                costs[j] = cj;
+                int cj = Math.min(1 + Math.min(cost[j], cost[j - 1]), tag1.charAt(i - 1) == tag2.charAt(j - 1) ? nw : nw + 1);
+                nw = cost[j];
+                cost[j] = cj;
             }
         }
-        return costs[tag2.length()];
+        return cost[tag2.length()];
 
     }
 
@@ -321,8 +362,8 @@ public class Clustering {
 
     public static void writeJS() throws Exception{
         //{id: 0, label: "0", group: 0}
-        PrintStream out = new PrintStream("aet-js.html");
-        out.print("<!doctype html>\n" +
+        PrintStream out = new PrintStream("AmericanElection.js");
+        /*out.print("<!doctype html>\n" +
                 "<html>\n" +
                 "<head>\n" +
                 "    <title>Hashtags</title>\n" +
@@ -355,8 +396,8 @@ public class Clustering {
                 "<script type=\"text/javascript\">\n" +
                 "    var color = 'gray';\n" +
                 "    var len = undefined;\n" +
-                "\n" +
-                "    var nodes = [");
+                "\n" +*/
+        out.print("    var nodes = [");
         for (int i = 0; i < clusters.size(); i++) {
             for (int j = 0; j < clusters.get(i).size()-1; j++ ) {
                 writeJSNode(i, j,out);
@@ -370,17 +411,35 @@ public class Clustering {
 
         out.print("];\n" +
                 "    var edges = [");
-        for (int i =0; i < clusters.size(); i++) {
-            for (int j = 0; j < clusters.get(i).size(); j++ ) {
+        for (int i = 0; i < clusters.size(); i++) {
+            for (int j = 0; j < clusters.get(i).size()-1; j++ ) {
                 writeJSEdge(i, j,out);
                 out.println(",");
+
+            }
+        }
+        for (int i = 0; i < clusters.size()-1; i++) {
+            for (int j = i+1; j < clusters.size(); j++ ) {
+                if(distance(centers.get(i),centers.get(j)) < 5) {
+                    writeJSCenters(i, j, out);
+                    out.println(",");
+                }
+            }
+        }
+        for (int i = 0; i < hashtags.size()-1; i++) {
+            for (int j = i+1; j < hashtags.size(); j++) {
+                if (distance(hashtags.get(i),hashtags.get(j)) < 3) {
+                    out.println("{from: " + hashtags.indexOf(hashtags.get(i)) + ", " + "to: " +
+                            hashtags.indexOf(hashtags.get(j)) + "," + "label: " +
+                            distance(hashtags.get(i),hashtags.get(j)) + ", "  + "font: {align: 'middle'}},");
+                }
             }
         }
 
         writeJSEdge(ii,jj,out);
         out.println();
 
-        out.print("]\n" +
+        out.print("];");/*\n" +
                 "\n" +
                 "    // create a network\n" +
                 "    var container = document.getElementById('mynetwork');\n" +
@@ -405,7 +464,7 @@ public class Clustering {
                 "    network = new vis.Network(container, data, options);\n" +
                 "</script>\n" +
                 "</body>\n" +
-                "</html>");
+                "</html>");*/
 
     }
 
@@ -415,10 +474,58 @@ public class Clustering {
     }
 
     public static void writeJSEdge(Integer i, Integer j, PrintStream out) {
+        //{from: 1, to: 2, label: 'middle',     font: {align: 'middle'}},
         out.print("{from: " + hashtags.indexOf(centers.get(i)) + ", " + "to: " +
-                hashtags.indexOf(clusters.get(i).get(j)) + "}");
+                hashtags.indexOf(clusters.get(i).get(j)) + "," + "label: " +
+                distance(centers.get(i),clusters.get(i).get(j)) + ", "  + "font: {align: 'middle'}}");
 
     }
+
+    public static void writeJSCenters(Integer i, Integer j, PrintStream out) {
+        out.print("{from: " + hashtags.indexOf(centers.get(i)) + ", " + "to: "
+                                      + hashtags.indexOf(centers.get(j))+ "," + "label: " +
+                distance(centers.get(i),centers.get(j)) + ", "  + "font: {align: 'middle'}}");
+    }
+
+
+
+    public static void writeCSV() throws Exception{
+        PrintStream out = new PrintStream("graph.csv");
+        out.println("Source;Target;Weight");
+        for (int i =0; i < clusters.size(); i++) {
+            for (int j = 0; j < clusters.get(i).size(); j++ ) {
+                writeEdge(i, j,out);
+                if (i!=j) {                writeCenters(i,j,out);}
+            }
+        }
+    }
+
+    public static void writeEdge(Integer i, Integer j, PrintStream out) {
+        out.println(centers.get(i) + ";" +
+                clusters.get(i).get(j) + ";" + distance(centers.get(i),clusters.get(i).get(j)));
+
+    }
+
+    public static void writeCenters(Integer i, Integer j, PrintStream out) {
+        out.println(centers.get(i) + ";" + centers.get(j) + ";" + distance(centers.get(i),centers.get(j)));
+    }
+
+
+    public static void writeNodes() throws Exception{
+        PrintStream out = new PrintStream("nodes.csv");
+        out.println("Id");
+        for (int i = 0; i < hashtags.size(); i++) {
+            out.println(hashtags.get(i));
+        }
+    }
+
+    public static Integer distance(String A, String B) {
+        Integer n = 0;
+        if (A.length() >= B.length() == true) {n = Metric(A,B);}
+        else {n = Metric(B,A);}
+        return n;
+    }
+
 
      /*
       *
@@ -467,7 +574,10 @@ public class Clustering {
         }
 
         setDistances();
+        System.out.println(count);
         writeJS();
+        //writeCSV();
+        //writeNodes();
 
     }
 }
